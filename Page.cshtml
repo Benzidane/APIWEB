@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to My MVC Application</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+
+    <h2>Welcome to My MVC Application</h2>
+    <form id="employeeForm">
+        Name: <input type="text" id="name" required><br>
+        Age: <input type="number" id="age" required><br>
+        Active: <input type="checkbox" id="active"><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h3>Employees List</h3>
+    <table border="1" id="employeesTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Employees will be displayed here -->
+        </tbody>
+    </table>
+
+    <script>
+        $(document).ready(function () {
+            // Fetch employees when the page loads
+            fetchEmployees();
+
+            // Handle form submission
+            $("#employeeForm").submit(function (event) {
+                event.preventDefault();
+
+                var employee = {
+                    Name: $("#name").val(),
+                    Age: $("#age").val(),
+                    Active: $("#active").prop("checked") ? 1 : 0
+                };
+
+                // Send data to the backend
+                $.ajax({
+                    url: '/api/values',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(employee),
+                    success: function (response) {
+                        alert(response.message);
+                        fetchEmployees(); // Refresh employee list
+                        $("#employeeForm")[0].reset(); // Reset form
+                    },
+                    error: function (error) {
+                        alert("Error: " + error.message);
+                    }
+                });
+            });
+
+            // Fetch all employees
+            function fetchEmployees() {
+                $.ajax({
+                    url: '/api/values',
+                    type: 'GET',
+                    success: function (response) {
+                        var tbody = $("#employeesTable tbody");
+                        tbody.empty(); // Clear the table
+                        response.forEach(function (employee) {
+                            tbody.append("<tr><td>" + employee.Name + "</td><td>" + employee.Age + "</td><td>" + (employee.Active ? "Yes" : "No") + "</td><td><button onclick='deleteEmployee(" + employee.Id + ")'>Delete</button></td></tr>");
+                        });
+                    }
+                });
+            }
+
+            // Delete an employee
+            window.deleteEmployee = function (id) {
+                $.ajax({
+                    url: '/api/values/' + id,
+                    type: 'DELETE',
+                    success: function (response) {
+                        alert(response.message);
+                        fetchEmployees(); // Refresh employee list
+                    },
+                    error: function (error) {
+                        alert("Error: " + error.message);
+                    }
+                });
+            };
+        });
+    </script>
+
+</body>
+</html>
+
